@@ -35,6 +35,7 @@
 \boldmath % Use bold for everything within the math environment
 
 \usepackage{booktabs} % Top and bottom rules for tables
+\usepackage{subfigure} 
 
 \graphicspath{{figures/}} % Location of the graphics files
 
@@ -52,10 +53,9 @@
 %----------------------------------------------------------------------------------------
 %	FOOTER TEXT
 %----------------------------------------------------------------------------------------
+\newcommand{\leftfoot}{https://www.itba.edu.ar/id/centro-de-inteligencia-computacional/} % Left footer text
 
-\newcommand{\leftfoot}{http://www.LaTeXTemplates.com} % Left footer text
-
-\newcommand{\rightfoot}{john@smith.com} % Right footer text
+\newcommand{\rightfoot}{rramele@itba.edu.ar} % Right footer text
 \newlength{\columnheight}
 \setlength{\columnheight}{115cm}
 %----------------------------------------------------------------------------------------
@@ -95,16 +95,18 @@
 \begin{itemize}
 \item \textbf{Where are the Waveforms?}
 \begin{itemize}
-\item Around $71.2\%$ based on Noninvasive EEG Research
+\item Around $71.2\%$ of BCI Research is based on Noninvasive EEG \textsuperscript{[1]}
 \end{itemize}
-\item EEG has traditionally focused on temporal waveforms.
+\item EEG has traditionally focused on temporal waveforms. Few methods exploited automatically signal waveforms:
 \begin{itemize}
-\item Bondt-Pompe Permutation Entropy
-\item Slope Horizontal Chain Code
+\item Matching Pursuit (Mallat 1993)
+\item Permutation Entropy (Bandt-Pompe 2002)
+\item Slope Horizontal Chain Code\textsuperscript{[2]}.
+\item Merging of Increasing and Descending Sequences\textsuperscript{[3]}.
 \end{itemize}
-\item Atlases and guides were developed based on Waveforms.   
+\item Clinical atlases and guidelines were developed based on waveforms.   
 \begin{itemize}
-\item More interaction is fostered: \textit{"the community asks for a more close relation with clinical inputs"}([5])
+\item More interaction between BCI stakeholders should be fostered\textsuperscript{[7]}.
 \end{itemize}
 \end{itemize}
 
@@ -119,32 +121,35 @@
 \begin{columns} % Subdivide the first main column
 \begin{column}{.54\textwidth} % The first subdivided column within the first main column
 \begin{itemize}
-\item Vestibulum nisl, quis euismod velit eros in ligula.
+\item Research Oriented Digital EEG Device
 \begin{itemize}
-\item Cras rhoncus quam et augue convallis in elementum urna tincidunt.
+\item g.Nautilus, 8-channel, wet electrodes, g.Tec.
 \end{itemize}
-\item Proin ut vestibulum augue.
+\item Open Source Platform and Software
 \begin{itemize}
-\item Donec dapibus sagittis neque eu ultrices.
+\item OpenVibe
+\item Matlab
+\item C++ VLFeat Computer Vision Library.
 \end{itemize}
+
 \end{itemize}
 \end{column}
 
 \begin{column}{.43\textwidth} % The second subdivided column within the first main column
 \centering
 \begin{figure}
-\includegraphics[width=0.8\linewidth]{placeholder.jpg}
-\caption{Figure caption}
+\includegraphics[width=0.8\linewidth]{gTecSubject.jpg}
+\caption{Subject performing a P300 Speller experiment}
 \end{figure}
 \end{column}
 \end{columns} % End of the subdivision
 
 \begin{itemize}
-\item Curabitur sapien ligula, faucibus in feugiat quis, vestibulum a turpis.
+\item Offline datasets
 \begin{itemize}
-\item Phasellus quis nunc neque. Suspendisse mauris diam, suscipit non gravida in, placerat id enim. Ut nec ipsum in lectus ultrices sagittis.
-\item Ut nec ipsum in lectus ultrices sagittis.
-\item Phasellus quis nunc neque.
+\item Physiobank Alpha Wave
+\item Motor Imagery BNCI-Horizon 002-2014
+\item ALS P300 BNCI-Horizon 008-2014
 \end{itemize}
 \end{itemize}
 
@@ -154,34 +159,56 @@
 %	METHODS
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Methods}
+\begin{block}{Methods: Processing Pipeline and Feature Extraction}
+\begin{enumerate}
+\item Signal Preprocessing and Segmentation
+\item Signal Plotting: single channel binary image 
+
+\begin{align*}
+I(z_1,z_2) = \left\{ \begin{array}{rl}
+255 & \text{if} \,  z_1 = \gamma \cdot n; \; z_2 = EEG(n,c) + z(c) \\
+0   & \mbox{otherwise}
+\end{array}\right.
+\label{eq:plotting}
+\end{align*}
+
 \begin{itemize}
-\item Signal Plottting
-\begin{itemize}
-\item Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. 
-\item Proin in nisi diam.
-\item Nam ultricies pellentesque nunc, ultrices volutpat nisl ultrices a.
+\item \textbf{Bresenham} algorithm interpolates straight lines between consecutive sample points.
 \end{itemize}
 
-\item Volutpat 
-\begin{itemize}
-\item Duis semper lorem eget dui dignissim porttitor.
-\item Nulla facilisi. In ullamcorper lorem quis dolor.
-\end{itemize}
+\begin{figure}[htb]
+\centering
+\subfigure[Patch over a Signal Complex]{\includegraphics[width=.29\linewidth]{descriptorpatchsample}}
+\subfigure[Gradient vector field around the signal]{\includegraphics[height=316pt,width=.29\linewidth]{samplegradients}}
+\subfigure[Oriented histogram on each block]{\includegraphics[width=.29\linewidth]{descriptorpatcharrows}}
+\caption{Sample patch around a signal complex. The patch is divided in $4 \times 4$ blocks and $8$ orientations (bins) are calculated on each block, forming a $128$ normalized feature called \textit{descriptor}.}
+\label{fig:histogramof}
+\end{figure}
 
 
 \item The Histogram of Gradient Orientations
 \begin{itemize}
-\item Suspendisse potenti. Fusce a est eget turpis rhoncus varius sed sed dui. Cras justo nibh, bibendum a cursus eget, consequat et dui. Maecenas vel nisl elit, sed dignissim dolor. 
-\item In hac habitasse platea dictumst.
+\item Popular and powerful tool from Computer Vision and basis of SIFT\textsuperscript{[5]} feature extraction method.
+\item Inspired on how the visual cortex identify shapes.
+\item For every pixel $\mathbf{p}$ on the image plot:
 \end{itemize}
 
 \begin{align*}
  h(\theta,i,j) = 3 s \sum_{\mathbf{p}} w_\mathrm{ang}(\angle J(\mathbf{p}) - \theta)\, w_{ij}\left(\frac{\mathbf{p} - \mathbf{kp}}{3 s}\right)\, |J(\mathbf{p})|
-\label{eq:histogram}
 \end{align*}
 
-\end{itemize}
+\noindent with $s$ as the scale of the patch, $J(\mathbf{p})$ is the finite differences gradient vector, $ \theta \in \{0, 45, 90, 135, 180, 225, 270, 315\} $, $ i,j = \{0,1,2,3\} $, using the following trilinear interpolation functions \textsuperscript{[6]}
+
+\begin{align*}
+ w_{ij}(\mathbf{v}) = w( v_x - x_i ) w( v_y - y_i ) ,  w_\mathrm{ang}(\alpha) = \sum_{k} w( \frac{8\alpha}{2\pi} + 8r)
+\end{align*}
+
+\begin{align*}
+ w(z) = \max(0,|z|-1)
+\end{align*}
+
+
+\end{enumerate}
 
 \end{block}
 
@@ -189,21 +216,6 @@
 %	MATHEMATICAL SECTION
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Classification}
-
-\begin{itemize}
-\item Maecenas Ultricies Feugiat Velit Non Mattis.
-\begin{itemize}
-\item Duis ante erat, bibendum nec tempus nec, interdum quis est. Nulla at mollis tortor. Phasellus quis leo dolor, aliquam laoreet orci $X$ Donec dapibus sagittis neque eu nec, interdum quis est. $Y_n, n=1,\cdots,N$ ndum nec tempus nec, interd
-\begin{align*}
-X \rightarrow r(X) & = \arg \max_{c} \Big\{ \max_n \big\{ \sum_{x_i \in X} \delta(x_i,Y_{n,c})\big\} \Big\} 
-\end{align*}
-\item Cras faucibus scelerisque cursus. Proin ut vestibulum augue. $\delta(x_i,Y_{n,c})$
-\end{itemize}
-\item Fusce tempus arcu id ligula varius dictum. Donec ut nisl dui, ac consectetur elit. In nec enim porta augue venenatis sollicitudin. Phasellus quis nunc neque. Suspendisse mauris diam, suscipit non gravida in, placerat id enim. Ut nec ipsum in lectus ultrices sagittis.
-\end{itemize}
-
-\end{block}
 
 %----------------------------------------------------------------------------------------
 
@@ -217,54 +229,62 @@ X \rightarrow r(X) & = \arg \max_{c} \Big\{ \max_n \big\{ \sum_{x_i \in X} \delt
 %	RESULTS
 %----------------------------------------------------------------------------------------
 
-\begin{block}{Results: Table}
+\begin{block}{Methods: Classification}
 
 \begin{itemize}
-\item Transient and oscillatory phenomena
+\item Straightforward supervised classification model based on \textbf{Naive Bayes Near Neighbor}.
+\begin{itemize}
+\item Binary (oscillatory) or unary (transient) classification
+\end{itemize}
+\item For \textit{descriptors} $ d_i $ obtained from test signals, the class where the image (and the signal) belongs can be inferred by resolving
+
+\begin{align*}
+\hat{C} = \arg \min_C \big\{\sum_{}^{} \left\lVert d_i - NN_C(d_i) \right\rVert ^2 \big\}
+\end{align*}
+
+\item where $NN_C(d_i)$ are the set of prototype descriptors.
+\end{itemize}
+
+\end{block}
+
+\begin{block}{Results}
+
+\begin{itemize}
+\item Transient and oscillatory phenomena have been studied.
 \end{itemize}
 
 \begin{table}
 \begin{tabular}{l l l}
 \toprule
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
+\textbf{Waveform} & \textbf{Best ACC} & \textbf{Intra-Subject Avg}\\
 \midrule
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
+$\mu$ & $75\%$ & $65\%$ \\
+P300  & $95\%$ & $45\%$ \\
+$\alpha$  & $95\%$ & $80\%$ \\
 \bottomrule
 \end{tabular}
-\caption{Table caption}
+\caption{Classification Accuracy percentage}
 \end{table}
 
-\begin{itemize}
-\item Sollicitudin Vel Orci
-\item Maecenas Ultricies Feugiat Velit Non Mattis.
-\end{itemize}
-
-\begin{table}
-\begin{tabular}{l l l}
-\toprule
-\textbf{Treatments} & \textbf{Response 1} & \textbf{Response 2}\\
-\midrule
-Treatment 1 & 0.0003262 & 0.562 \\
-Treatment 2 & 0.0015681 & 0.910 \\
-Treatment 3 & 0.0009271 & 0.296 \\
-\bottomrule
-\end{tabular}
-\caption{Table caption}
-\end{table}
+%\begin{itemize}
+%\item Sollicitudin Vel Orci
+%\item Maecenas Ultricies Feugiat Velit Non Mattis.
+%\end{itemize}
      
 \end{block}
 
 %------------------------------------------------
 
-\begin{block}{Results: Figure}
+\begin{block}{Results}
 
-\begin{figure}
-\includegraphics[width=0.8\linewidth]{placeholder.jpg}
-\caption{Figure caption}
+\begin{figure}[htb]
+\centering
+\subfigure[$\alpha$ Wave]{\includegraphics[width=.32\linewidth]{DatasetPhysionetAccuracyPerChannel.eps}}
+\subfigure[$\mu$ Wave]{\includegraphics[width=.32\linewidth]{DatasetMICrossValidation2.eps}}
+\subfigure[P300]{\includegraphics[width=.32\linewidth]{performance2.eps}}
+\caption{Classification accuracy percentages.}
+\label{fig:p300matrix}
 \end{figure}
-
 \end{block}
 
 %----------------------------------------------------------------------------------------
@@ -275,8 +295,8 @@ Treatment 3 & 0.0009271 & 0.296 \\
 
 \begin{itemize}
 \item A method which is biomimetically based on how the visual cortex works by detecting orientations, ironically, is used preciely to detect information from the brain.
-\item It has universal applicability because the same basic methodology can be applied to detct different patterns in EEG for BCI
-\item It has the potential to foster close collaboration with physicians and electroencephalograph technicias
+\item It has universal applicability because the same basic methodology can be applied to detect different patterns in EEG for BCI
+\item It has the potential to foster close collaboration with physicians and electroencephalograph technicians.
 \item Follows the established procedure of the clinical EEG of analyzing waveforms by their shapes.
 \item Eases the clinical acceptance and use of qEEG technologies.
 \end{itemize}
@@ -289,14 +309,13 @@ Treatment 3 & 0.0009271 & 0.296 \\
 
 \begin{block}{References}
               \begin{itemize}
-                \item [1] \small Guger C., Allison B.Z., Lebedev M.A. (2017) Recent Advances in Brain-Computer Interface Research—A Summary of the BCI Award 2016 and BCI Research Trends.
-                \item [2] \small Schomer, D.L.; Silva, F.L.D. Niedermeyer’s Electroencephalography: Basic Principles, Clinical Applications, and Related Fields. 2010.
-                \item [3] Berger, S.; Schneider, G.; Kochs, E.; Jordan, D. Permutation Entropy: Too Complex a Measure for EEG Time Series? 2017.
-                \item [4] Alvarado-González, M.; Garduño, E.; Bribiesca, E.; Yáñez-Suárez, O.; MedinaBañuelos, V. P300 Detection Based on EEG Shape Features. 2016
-                \item [5] Yamaguchi, T.; Fujio, M.; Inoue, K.; Pfurtscheller, G. Design Method of Morphological Structural Function for Pattern Recognition of EEG Signals During Motor Imagery and
-Cognition. 2009
-                \item [6] Ramele, R.; Villar, A.J.; Santos, J.M. BCI classification based on signal plots and SIFT descriptors. 2016;
-                \item [7] D. G. Lowe, Object recognition from local scale-invariant features.1999
+                \item [1] \small Guger C., Allison B.Z., Lebedev M.A. (2017) Recent Advances in Brain-Computer Interface Research A Summary of the BCI Award 2016 and BCI Research Trends.
+                \item [2] Alvarado-González, M.; Garduño, E.; Bribiesca, E.; Yáñez-Suárez, O.; MedinaBañuelos, V. P300 Detection Based on EEG Shape Features. 2016
+                \item [3] Zhang J.; Zou J.; Automatic detection of interictal epileptiform discharges based on time-series sequence merging method, Neurocomputing, 2013;
+                \item [4] Ramele, R.; Villar, A.J.; Santos, J.M. BCI classification based on signal plots and SIFT descriptors. 2016;
+                \item [5] D. G. Lowe, Object recognition from local scale-invariant features.1999
+                \item [6] Vedaldi, A.; Fulkerson, B. VLFeat - An open and portable library of computer vision algorithms. Design 2010;
+                \item [7] Chavarriaga et al; Heading for new shores! Overcoming pitfalls in BCI design, Brain-Computer Interfaces, TF 2016;
               \end{itemize}
                       
 %\nocite{*} % Insert publications even if they are not cited in the poster
@@ -322,15 +341,15 @@ Cognition. 2009
 %----------------------------------------------------------------------------------------
 
 
-\begin{block}{Contact Information}
-
-\begin{itemize}
-\item Web: \href{http://www.university.edu/smithlab}{http://www.university.edu/smithlab}
-\item Email: \href{mailto:john@smith.com}{john@smith.com}
-\item Phone: +1 (000) 111 1111
-\end{itemize}
-
-\end{block}
+%\begin{block}{Contact Information}
+%
+%\begin{itemize}
+%\item Web: \href{https://www.itba.edu.ar/id/centro-de-inteligencia-computacional/}{CiC@ITBA}
+%\item Email: \href{mailto:rramele@itba.edu.ar}{rramele@itba.edu.ar}
+%\item Phone: +54 (911) 4193 9382
+%\end{itemize}
+%
+%\end{block}
 
 %----------------------------------------------------------------------------------------
 
